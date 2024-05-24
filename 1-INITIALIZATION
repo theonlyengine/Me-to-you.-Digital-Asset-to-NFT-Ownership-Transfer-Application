@@ -1,0 +1,44 @@
+#CR PROJ DIREC
+mkdir digital-asset-nft
+cd digital-asset-nft
+mkdir backend
+cd backend
+
+
+#INITIALIZE NODE.JS
+npm init -y
+
+#INST DEPEN
+
+npm install express mongoose body-parser dotenv
+
+
+#CREATE SERVER FILE
+
+// backend/server.js
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+#CREATE .ENV FILE
+MONGODB_URI=mongodb://localhost/digital_asset_nft
+
+
+
+
+
