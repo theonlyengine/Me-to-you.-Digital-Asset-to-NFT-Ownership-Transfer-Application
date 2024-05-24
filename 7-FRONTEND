@@ -1,0 +1,273 @@
+#INIT REACT
+
+cd ..
+npx create-react-app frontend
+cd frontend
+
+
+#INST DEPEN
+
+npm install axios web3 react-router-dom
+
+
+#ROUTING
+// frontend/src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Register from './components/Register';
+import Login from './components/Login';
+import UploadAsset from './components/UploadAsset';
+import Dashboard from './components/Dashboard';
+
+function App() {
+  return (
+    <Router>
+      <Switch>
+        <Route path="/register" component={Register} />
+        <Route path="/login" component={Login} />
+        <Route path="/upload" component={UploadAsset} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/" component={Login} />
+      </Switch>
+    </Router>
+  );
+}
+
+export default App;
+
+
+#REGISTER COMPONENTS
+
+// frontend/src/components/Register.js
+import React, { useState } from 'react';
+import axios from 'axios';
+
+function Register() {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:5000/api/users/register', {
+        username,
+        email,
+        password
+      });
+      alert(response.data);
+    } catch (error) {
+      console.error('Error registering user:', error);
+      alert('Error registering user');
+    }
+  };
+
+  return (
+    <div>
+      <h1>Register</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Username:</label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </div>
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <label>Password:</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <button type="submit">Register</button>
+      </form>
+
+    </div>
+  );
+}
+
+export default Register;
+
+#LOGIN COMP
+
+// frontend/src/components/Login.js
+import React, { useState } from 'react';
+import axios from 'axios';
+import { useHistory } from 'react-router-dom';
+
+function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const history = useHistory();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post('http://localhost:5000/api/users/login', {
+        email,
+        password
+      });
+      localStorage.setItem('token', response.data.token);
+      history.push('/dashboard');
+    } catch (error) {
+      console.error('Error logging in:', error);
+      alert('Invalid credentials');
+    }
+  };
+
+  return (
+    <div>
+      <h1>Login</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Email:</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div>
+          <label>Password:</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  );
+}
+
+export default Login;
+
+
+#UPLOAD ASSET COMPONENT
+// frontend/src/components/UploadAsset.js
+importLet's continue developing the application by setting up the frontend component for uploading assets and creating NFTs. 
+
+// frontend/src/components/UploadAsset.js
+import React, { useState } from 'react';
+import axios from 'axios';
+
+function UploadAsset() {
+  const [assetType, setAssetType] = useState('');
+  const [description, setDescription] = useState('');
+  const [document, setDocument] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('http://localhost:5000/api/assets/upload', {
+        assetType,
+        description,
+        document
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      alert('Asset uploaded and NFT created: ' + response.data.nftAddress);
+    } catch (error) {
+      console.error('Error uploading asset:', error);
+      alert('Error uploading asset');
+    }
+  };
+
+  return (
+    <div>
+      <h1>Upload Asset</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Asset Type:</label>
+          <input
+            type="text"
+            value={assetType}
+            onChange={(e) => setAssetType(e.target.value)}
+          />
+        </div>
+        <div>
+          <label>Description:</label>
+          <input
+            type="text"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </div>
+        <div>
+          <label>Document URL:</label>
+          <input
+            type="text"
+            value={document}
+            onChange={(e) => setDocument(e.target.value)}
+          />
+        </div>
+        <button type="submit">Upload Asset</button>
+      </form>
+    </div>
+  );
+}
+
+export default UploadAsset;
+
+
+#CREATE DASHBOARD COMPONENT
+// frontend/src/components/Dashboard.js
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+function Dashboard() {
+  const [assets, setAssets] = useState([]);
+
+  useEffect(() => {
+    const fetchAssets = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/api/assets', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setAssets(response.data);
+      } catch (error) {
+        console.error('Error fetching assets:', error);
+        alert('Error fetching assets');
+      }
+    };
+
+    fetchAssets();
+  }, []);
+
+  return (
+    <div>
+      <h1>My Assets</h1>
+      <ul>
+        {assets.map((asset) => (
+          <li key={asset._id}>
+            <h2>{asset.assetType}</h2>
+            <p>{asset.description}</p>
+            <p>NFT Address: {asset.nftAddress}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default Dashboard;
+
+
