@@ -1,0 +1,65 @@
+#INSTALL TRUFFLE AND GANACHE
+
+npm install -g truffle
+npm install -g ganache-cli
+
+
+# INITIALIZE TRUFFLE
+
+mkdir smart-contracts
+cd smart-contracts
+truffle init
+
+
+#CREATE NFT SMART CONTRACT
+
+// smart-contracts/contracts/AssetNFT.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract AssetNFT is ERC721, Ownable {
+    uint256 public nextTokenId;
+    mapping(uint256 => string) public tokenURIs;
+
+    constructor() ERC721("AssetNFT", "ANFT") {}
+
+    function mintNFT(address recipient, string memory tokenURI) public onlyOwner returns (uint256) {
+        uint256 tokenId = nextTokenId;
+        _safeMint(recipient, tokenId);
+        tokenURIs[tokenId] = tokenURI;
+        nextTokenId++;
+        return tokenId;
+    }
+
+    function _baseURI() internal view virtual override returns (string memory) {
+        return "https://api.yourdomain.com/metadata/";
+    }
+
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        return tokenURIs[tokenId];
+    }
+}
+
+
+# COMPILE AND DEPLOY SC
+
+// smart-contracts/truffle-config.js
+module.exports = {
+  networks: {
+    development: {
+      host: "127.0.0.1",
+      port: 7545,
+      network_id: "*"
+    }
+  },
+  compilers: {
+    solc: {
+      version: "0.8.0"
+    }
+  }
+};
+
+
