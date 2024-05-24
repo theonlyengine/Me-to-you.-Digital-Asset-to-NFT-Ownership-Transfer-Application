@@ -1,0 +1,32 @@
+#DEFINE MODELS
+mkdir models
+
+#DEFINE USER MODEL
+// backend/models/User.js
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const userSchema = new Schema({
+  username: { type: String, required: true },
+  email: { type: String, required: true },
+  password: { type: String, required: true },
+  assets: [{ type: Schema.Types.ObjectId, ref: 'Asset' }]
+});
+
+module.exports = mongoose.model('User', userSchema);
+
+#DEFINE ASSET MODEL
+// backend/models/Asset.js
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const assetSchema = new Schema({
+  owner: { type: Schema.Types.ObjectId, ref: 'User' },
+  assetType: { type: String, required: true },
+  description: { type: String, required: true },
+  document: { type: String, required: true },  // URL or path to the document
+  nftAddress: { type: String, required: true }  // Address of the minted NFT
+});
+
+module.exports = mongoose.model('Asset', assetSchema);
+
