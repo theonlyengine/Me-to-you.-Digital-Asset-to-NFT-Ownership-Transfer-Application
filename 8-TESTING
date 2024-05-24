@@ -1,0 +1,12 @@
+#RUN
+
+cd backend
+node server.js
+
+#RUN
+
+cd frontend
+npm start
+
+
+TEST
