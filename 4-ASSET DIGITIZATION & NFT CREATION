@@ -1,0 +1,75 @@
+// backend/routes/asset.js
+const express = require('express');
+const router = express.Router();
+const Asset = require('../models/Asset');
+const { createNFT } = require('../utils/nft');
+
+// Middleware to authenticate user
+const authenticate = (req, res, next) => {
+  const token = req.header('Authorization').replace('Bearer ', '');
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  req.userId = decoded.id;
+  next();
+};
+
+// Upload asset and create NFT
+router.post('/upload', authenticate, async (req, res) => {
+  const { assetType, description, document } = req.body;
+  const nftAddress = await createNFT(req.userId, assetType, description, document);
+  const newAsset = new Asset({
+    owner: req.userId,
+    assetType,
+    description,
+    document,
+    nftAddress
+  });
+  await newAsset.save();
+  res.status(201).json(newAsset);
+});
+
+module.exports = router;
+
+
+#UTILITY FUNCTION FOR NFT CREATION
+// backend/utils/nft.js
+const Web3 = require('web3');
+const contractABI = require('../contracts/YourContractABI.json');
+const contractAddress = 'YOUR_CONTRACT_ADDRESS';
+const web3 = new Web3('YOUR_BLOCKCHAIN_PROVIDER_URL');
+
+const createNFT = async (userId, assetType, description, document) => {
+  const contract = new web3.eth.Contract(contractABI, contractAddress);
+  const accounts = await web3.eth.getAccounts();
+  const result = await contract.methods.mintNFT(userId, assetType, description, document).send({ from: accounts[0] });
+  return result.events.Transfer.returnValues.tokenId;
+};
+
+module.exports = { createNFT };
+
+
+
+#INTEGRATE ASSET ROUTES
+// backend/server.js
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));
+
+// Use Routes
+const userRoutes = require('./routes/user');
+const assetRoutes = require('./routes/asset');
+app.use('/api/users', userRoutes);
+app.use('/api/assets', assetRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`ServerGreat! We’re progressing well. Let’s continue with our application development. We'll proceed with the backend setup for managing digital assets, creating NFTs, and smart contracts for asset ownership transfers. 
